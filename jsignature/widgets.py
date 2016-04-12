@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 from jsignature.settings import JSIGNATURE_DEFAULT_CONFIG
 
 JSIGNATURE_EMPTY_VALUES = validators.EMPTY_VALUES + ('[]', )
-
+#from .forms import JSignature
 
 class JSignatureWidget(HiddenInput):
     """
@@ -61,22 +61,29 @@ class JSignatureWidget(HiddenInput):
 
     def render(self, name, value, attrs=None):
         """ Render widget """
-        # Build config
-        jsign_id = self.build_jsignature_id(name)
-        jsignature_config = self.build_jsignature_config()
 
-        # Prepare value
-        value = self.prep_value(value)
+        print "render(value=%s, type=%s)" % (value, type(value))
+        if value: # and hasattr(value, 'content'):
+            context = {
+                'signature': value,
+            }
+        else:
+            # Build config
+            jsign_id = self.build_jsignature_id(name)
+            jsignature_config = self.build_jsignature_config()
 
-        # Build output
-        context = {
-            'hidden': super(JSignatureWidget, self).render(name, value, attrs),
-            'jsign_id': jsign_id,
-            'reset_btn_text': _('Reset'),
-            'config': jsignature_config,
-            'js_config': mark_safe(json.dumps(jsignature_config)),
-            'value': mark_safe(value),
-        }
+            # Prepare value
+            #value = self.prep_value(value)
+
+            # Build output
+            context = {
+                'hidden': super(JSignatureWidget, self).render(name, value, attrs),
+                'jsign_id': jsign_id,
+                'reset_btn_text': _('Reset'),
+                'config': jsignature_config,
+                'js_config': mark_safe(json.dumps(jsignature_config)),
+                'value': mark_safe(value if value else '[]')
+            }
         out = render_to_string('jsignature/widget.html', context)
 
         return mark_safe(out)
