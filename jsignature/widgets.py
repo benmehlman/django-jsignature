@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 from jsignature.settings import JSIGNATURE_DEFAULT_CONFIG
 
 JSIGNATURE_EMPTY_VALUES = validators.EMPTY_VALUES + ('[]', )
-#from .forms import JSignature
+import forms
 
 class JSignatureWidget(HiddenInput):
     """
@@ -35,6 +35,10 @@ class JSignatureWidget(HiddenInput):
         # Store jSignature js config
         self.jsignature_attrs = jsignature_attrs or {}
 
+    def value_from_datadict(self, data, files, name):
+        #print "value_from_datadict(name=%s, value=%s)" % (name, data.get(name))
+        return forms.JSignature(data.get(name), data.get('native_' + name, None))
+
     def build_jsignature_config(self):
         """ Build javascript config for jSignature initialization.
             It's a dict with for which default values come from settings
@@ -49,41 +53,29 @@ class JSignatureWidget(HiddenInput):
             It's important because it's used in javascript code """
         return 'jsign_%s' % name
 
-    def prep_value(self, value):
-        """ Prepare value before effectively render widget """
-        if value in JSIGNATURE_EMPTY_VALUES:
-            return "[]"
-        elif isinstance(value, six.string_types):
-            return value
-        elif isinstance(value, list):
-            return json.dumps(value)
-        raise ValidationError('Invalid format.')
-
     def render(self, name, value, attrs=None):
         """ Render widget """
-
+        
         print "render(value=%s, type=%s)" % (value, type(value))
-        if value: # and hasattr(value, 'content'):
-            context = {
-                'signature': value,
-            }
-        else:
-            # Build config
-            jsign_id = self.build_jsignature_id(name)
-            jsignature_config = self.build_jsignature_config()
+        # Build config
+        jsign_id = self.build_jsignature_id(name)
+        jsignature_config = self.build_jsignature_config()
+        readonly = self.attrs.pop('readonly', False)
 
-            # Prepare value
-            #value = self.prep_value(value)
+        # Build output
+        context = {
+            'signature': value,
+            'readonly': readonly,
+            'hidden': super(JSignatureWidget, self).render(name, value, attrs),
+            'native': super(JSignatureWidget, self).render('native_' + name, '', { 'id': attrs['id'].replace(
+                'id_', 'id_native_')}),
+            'jsign_id': jsign_id,
+            'reset_btn_text': _('Reset'),
+            'ok_btn_text': _('Ok'),
+            'config': jsignature_config,
+            'js_config': mark_safe(json.dumps(jsignature_config)),
+        }
 
-            # Build output
-            context = {
-                'hidden': super(JSignatureWidget, self).render(name, value, attrs),
-                'jsign_id': jsign_id,
-                'reset_btn_text': _('Reset'),
-                'config': jsignature_config,
-                'js_config': mark_safe(json.dumps(jsignature_config)),
-                'value': mark_safe(value if value else '[]')
-            }
         out = render_to_string('jsignature/widget.html', context)
 
         return mark_safe(out)

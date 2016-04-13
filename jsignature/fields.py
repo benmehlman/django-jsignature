@@ -27,28 +27,24 @@ class JSignatureField(six.with_metaclass(models.SubfieldBase, models.Field)):
         return 'TextField'
 
     def to_python(self, value):
-        """
-        Validates that the input can be read as a JSON object. Returns a Python JSignature object.
-        """
-        if not value:
-            return None
-        elif isinstance(value, JSignature):
-            return value
-        return JSignature(db_json=value)
-
+        print "fields.JSignatureField.to_python(value=%s, type=%s)" % (value, type(value))
+        rv = JSignature(value)
+        print "   returning: value=%s, type=%s" % (rv, type(rv))
+        return rv
+        
     def clean(self, value, model_instance):
-        print "JSignatureField:clean(model_instance=%s)" % model_instance
+        print "JSignatureField:clean(value=%s, model_instance=%s)" % (value, model_instance)
 
         if model_instance.pk and not value.content:
             orig = type(model_instance).objects.get(pk=model_instance.pk)
             value = getattr(orig, self.name)
-            print "orig value: %s" % value
+            #print "orig value: %s" % value
+            print "%s USING ORIGINAL VALUE" % self.name
 
         if self.signatory_field and not value.signatory_name:
-            if not hasattr(model_instance, self.signatory_field):
-                raise ValidationError('JSignatureField: signatory_field "%s" does not exist.' % self.signatory_field)
-            signatory = getattr(model_instance, self.signatory_field, None)
-            value.set_signatory(signatory)
+            if hasattr(model_instance, self.signatory_field):
+                signatory = getattr(model_instance, self.signatory_field, None)
+                value.set_signatory(signatory)
 
         return super(JSignatureField, self).clean(value, model_instance)
 
@@ -57,7 +53,8 @@ class JSignatureField(six.with_metaclass(models.SubfieldBase, models.Field)):
         #    return None
         if not isinstance(value, JSignature):
             raise ValidationError('JSignatureField: expected JSignature instance got "%s".' % value)
-        return value.as_db_json()  
+
+        return value.as_db_json() if value.content else None  
 
     def formfield(self, **kwargs):
         defaults = {'form_class': JSignatureFormField}

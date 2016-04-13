@@ -13,15 +13,23 @@ from django.utils import dateparse, timezone
 JSIGNATURE_EMPTY_VALUES = validators.EMPTY_VALUES + ('[]', )
 
 class JSignature(object):
-    def __init__(self, browser_json=None, db_json=None):    
+    def __init__(self, initial=None, native=None):
+        #print "JSignature.__init__(initial=%s)" % initial
+    
         self.data = {}
-        self.browser_json = browser_json
 
-        if browser_json:
-            l = json.loads(browser_json)
-            self.data.update({ 'content-type': l[0], 'content': l[1] })
-        elif db_json:
-            self.data = json.loads(db_json)
+        if initial:
+            if isinstance(initial, JSignature):
+                self.data = initial.data
+            elif initial.startswith('['):
+                l = json.loads(initial)
+                if len(l) == 2:
+                    self.data.update({ 'content-type': l[0], 'content': l[1] })
+            elif initial.startswith('{'):
+                self.data = json.loads(initial)
+        if native:
+            self.data['native'] = native
+        #print "  JSignature.data: %s" % self.data
 
     def set_signatory(self, signatory):
         if not signatory:
@@ -33,11 +41,17 @@ class JSignature(object):
             self.data['signatory-pk'] = getattr(signatory, 'pk')
 
     def as_db_json(self):
-        if not self.signed_dt:
+        data = dict(data)
+        data.pop('native', None)
+        if not data['signed_dt']:
             from datetime import datetime
             from pytz import utc
-            self.data['signed-dt'] = datetime.now(utc).isoformat()
-        return json.dumps(self.data)
+            data['signed-dt'] = datetime.now(utc).isoformat()
+        return json.dumps(data)
+
+    def is_signed(self):
+        # for now -BEN
+        return bool(self.data.get('signed-dt', None))
 
     @property
     def content_type(self):
@@ -68,8 +82,12 @@ class JSignature(object):
     def signatory_id(self):
         return self.data.get('signatory-id', None)
 
+    @property
+    def native(self):
+        return self.data.get('native', None)
+
     def __str__(self):
-       return str(self.data)
+       return json.dumps(self.data)
 
 
 class JSignatureField(Field):
@@ -79,14 +97,10 @@ class JSignatureField(Field):
     widget = JSignatureWidget()
 
     def to_python(self, value):
-            """
-            Validates that the input can be red as a JSON object.
-            Returns a Python list (JSON object unserialized).
-            """
-            print "forms.JSignatureField.to_python(value=%s)" % value
-            if value in JSIGNATURE_EMPTY_VALUES:
-                return None
-            try:
-                return JSignature(browser_json=value)
-            except ValueError:
-                raise ValidationError('forms.JSignatureField could not parse browser JSON.')
+        return value
+    #    print "forms.JSignatureField.to_python(value=%s)" % value
+    #    if value in JSIGNATURE_EMPTY_VALUES:
+    #        return None
+    #    if isinstance(value, JSignature):
+    #        return value        
+    #    return JSignature(value)
