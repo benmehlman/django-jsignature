@@ -3,6 +3,9 @@
     with jSignature jQuery plugin
 """
 import json, base64
+from datetime import datetime
+from pytz import utc
+
 from django.forms.fields import Field
 from django.core import validators
 from django.core.exceptions import ValidationError
@@ -31,21 +34,21 @@ class JSignature(object):
             self.data['native'] = native
         #print "  JSignature.data: %s" % self.data
 
-    def set_signatory(self, signatory):
-        if not signatory:
-            return False
-        name = unicode(signatory or '')
-        if name:
-            self.data['signatory-name'] = name
-        if hasattr(signatory, 'pk'):
-            self.data['signatory-pk'] = getattr(signatory, 'pk')
+    def set_signatory(self, signatory, field_name):
+        if field_name:
+            self.data['signatory-field'] = field_name
+        if signatory:
+            name = unicode(signatory or '')
+            if name:
+                self.data['signatory-name'] = name
+            if hasattr(signatory, 'pk'):
+                self.data['signatory-pk'] = getattr(signatory, 'pk')
+                self.data['signatory-model'] = type(signatory).__name__
 
     def as_db_json(self):
-        data = dict(data)
+        data = dict(self.data)
         data.pop('native', None)
-        if not data['signed_dt']:
-            from datetime import datetime
-            from pytz import utc
+        if self.content and not self.signed_dt:
             data['signed-dt'] = datetime.now(utc).isoformat()
         return json.dumps(data)
 
@@ -75,6 +78,10 @@ class JSignature(object):
         return timezone.localtime(self.signed_dt).strftime('%x %X')
 
     @property
+    def signatory_field(self):
+        return self.data.get('signatory-field', None)
+
+    @property
     def signatory_name(self):
         return self.data.get('signatory-name', None)
 
@@ -91,16 +98,8 @@ class JSignature(object):
 
 
 class JSignatureField(Field):
-    """
-    A field handling a signature capture field with with jSignature
-    """
-    widget = JSignatureWidget()
+    widget = JSignatureWidget
 
     def to_python(self, value):
-        return value
-    #    print "forms.JSignatureField.to_python(value=%s)" % value
-    #    if value in JSIGNATURE_EMPTY_VALUES:
-    #        return None
-    #    if isinstance(value, JSignature):
-    #        return value        
-    #    return JSignature(value)
+        #print "forms.JSignatureField.to_python(value=%s)" % value
+        return JSignature(value)

@@ -2,29 +2,35 @@
 
 $(document).ready(function() {
 
-  $(".jsign-container").each(function(){
-      var config = $(this).data('config');
-      var value = $(this).data('initial-value');
-      $(this).jSignature(config);
-      $(this).jSignature("setData", value, "native");
-      
-      function dopreview() {
-          var sigdiv = $(this).find('.jsign-container').change();
-          var datapair = sigdiv.jSignature("getData", "svgbase64"); 
-          var i = new Image();
-          i.src = "data:" + datapair[0] + "," + datapair[1];
-          $('#preview-'+ sigdiv.attr('id')).empty().append($(i).css('width', 'auto').css('height', 25));
-      }
- 
-      var dlg = $(this).closest('.jsign-wrapper').dialog({
-          title: 'Signature',
+  function dopreview() {
+      var sigdiv = $(this).find('.jsign-container').change();
+      var datapair = sigdiv.jSignature("getData", "image"); 
+      var i = new Image();
+      i.src = "data:" + datapair[0] + "," + datapair[1];
+      $('#preview-'+ sigdiv.attr('id')).empty().append($(i).css('width', 'auto').css('height', 25));
+  }
+
+  $(".jsign-wrapper").not('.ro').each(function(){
+
+      var name = $('#id_' + $(this).data('signatory-field') + '_text').val();
+      var dlg = $(this).dialog({
+          title: name || 'Signature',
           resizeable: false,
           width: 'auto',
           height: 'auto',
           modal: true,
           autoOpen: false,
-          close: dopreview
+          close: dopreview,
+          open: function() {
+              $(this).find('.jsign-container').css('width', '700px').resize();
+              $(this).dialog("option", "position", "center");
+          }
       });
+
+      var jsign = $(this).find('.jsign-container');
+      jsign.jSignature(jsign.data('config'));
+      jsign.jSignature("setData", jsign.data('initial-value'), "native");
+
       dopreview.call(dlg);
   });
 
@@ -48,10 +54,10 @@ $(document).ready(function() {
 
   /* Bind sign button */
   $(".jsign_btn").on("click", function(e) {
-      $('#'+$(this).data('jsign-id')).closest('.jsign-wrapper').dialog('open');
+      $('#'+$(this).data('jsign-id')).closest('.jsign-wrapper').dialog("option", "position", "center").dialog('open');
   });
 
-  $(".jsign-preview").on("click", function(e) {
+  $(".jsign-preview").not('.ro').on("click", function(e) {
       $('#' + $(this).attr('id').replace('preview-', '')).closest('.jsign-wrapper').dialog('open');
   });
 });

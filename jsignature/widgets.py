@@ -25,6 +25,7 @@ class JSignatureWidget(HiddenInput):
     # Actually, this widget has a display so we want it to behave like a
     # normal field, not a hidden one
     is_hidden = False
+    is_readonly = None
 
     class Media:
         js = ('js/jSignature.min.js',
@@ -56,16 +57,18 @@ class JSignatureWidget(HiddenInput):
     def render(self, name, value, attrs=None):
         """ Render widget """
         
-        print "render(value=%s, type=%s)" % (value, type(value))
-        # Build config
+        #print "JSignatureWidget.render(value=%s, type=%s)" % (value, type(value))
+
         jsign_id = self.build_jsignature_id(name)
         jsignature_config = self.build_jsignature_config()
-        readonly = self.attrs.pop('readonly', False)
+        
+        #print "self.attrs: %s, attrs: %s" % (self.attrs, attrs)
+        if self.is_readonly is None:
+            self.is_readonly = self.attrs.pop('readonly', False) or self.attrs.pop('disabled', False) 
 
-        # Build output
         context = {
             'signature': value,
-            'readonly': readonly,
+            'readonly': self.is_readonly,
             'hidden': super(JSignatureWidget, self).render(name, value, attrs),
             'native': super(JSignatureWidget, self).render('native_' + name, '', { 'id': attrs['id'].replace(
                 'id_', 'id_native_')}),
@@ -75,7 +78,5 @@ class JSignatureWidget(HiddenInput):
             'config': jsignature_config,
             'js_config': mark_safe(json.dumps(jsignature_config)),
         }
-
-        out = render_to_string('jsignature/widget.html', context)
-
-        return mark_safe(out)
+        
+        return mark_safe(render_to_string('jsignature/widget.html', context))

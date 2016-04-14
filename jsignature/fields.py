@@ -27,33 +27,35 @@ class JSignatureField(six.with_metaclass(models.SubfieldBase, models.Field)):
         return 'TextField'
 
     def to_python(self, value):
-        print "fields.JSignatureField.to_python(value=%s, type=%s)" % (value, type(value))
-        rv = JSignature(value)
-        print "   returning: value=%s, type=%s" % (rv, type(rv))
-        return rv
+        #print "fields.JSignatureField.to_python(value=%s, type=%s)" % (value, type(value))
+        value = JSignature(value)
+        value.set_signatory(None, self.signatory_field)
+        return value
         
     def clean(self, value, model_instance):
-        print "JSignatureField:clean(value=%s, model_instance=%s)" % (value, model_instance)
+        #print "JSignatureField.clean(name=%s value=%s, model_instance=%s)" % (self.name, value, model_instance)
 
         if model_instance.pk and not value.content:
-            orig = type(model_instance).objects.get(pk=model_instance.pk)
-            value = getattr(orig, self.name)
-            #print "orig value: %s" % value
-            print "%s USING ORIGINAL VALUE" % self.name
+            orig = getattr(model_instance, '_orig', None)
+            if not orig:
+               orig = type(model_instance).objects.get(pk=model_instance.pk)
+               setattr(model_instance, '_orig', orig)
+            orig_value = getattr(orig, self.name)
+            if orig_value.is_signed():
+                value = orig_value
+                #print "%s: used database value." % self.name
 
         if self.signatory_field and not value.signatory_name:
             if hasattr(model_instance, self.signatory_field):
                 signatory = getattr(model_instance, self.signatory_field, None)
-                value.set_signatory(signatory)
+                value.set_signatory(signatory, self.signatory_field)
 
         return super(JSignatureField, self).clean(value, model_instance)
 
     def get_prep_value(self, value):
-        #if value is None:
-        #    return None
+        #print "JSignatureField.get_prep_value(name=%s value=%s)" % (self.name, value)
         if not isinstance(value, JSignature):
             raise ValidationError('JSignatureField: expected JSignature instance got "%s".' % value)
-
         return value.as_db_json() if value.content else None  
 
     def formfield(self, **kwargs):

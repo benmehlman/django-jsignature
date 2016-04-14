@@ -1,3 +1,4 @@
+
 {% if signature.is_signed %}
 <div style="display: inline-block; margin-right: 4px; margin-top: 3px; width: 200px;">
 {{signature.signatory_name}}<br>
@@ -6,23 +7,23 @@
 <div style="display: inline-block; width: 200px; border-bottom: 1px solid #000;">
 <img style="height: 25px; width: auto;" src="data:{{signature.content_type}};base64,{{signature.content_base64}}"/>
 </div>
-{% else %}
-<style>
 
+{% else %}
+{{ hidden }}
+{{ native }}
+
+<style>
+.jsign-preview { display: inline-block; border: 1px dotted; width: 100px; height: 27px; }
+.jsign-preview.ro { background-color: #dde !important; }
+.jsign-wrapper { display: none; }
 .jsign-wrapper .btn { width: 100px; height: 20px; }
-.jsign-container  { /* width: 100%; height: 100%; */
+.jsign-container  { min-height: 200px; min-width: 400px; }
 
 /* http://stackoverflow.com/questions/5581034/is-there-are-way-to-make-a-child-divs-width-wider-than-the-parent-div-using-css */
-position: relative;
-    width: 90vw;
-    min-height: 200px;
-     _left: calc(-50vw + 50%);
-    max-width: 700px;
-}
-.jsign-preview { display: inline-block; border: 1px dotted; width: 200px; height: 27px; }
-.jsign-preview .ro { background: #dde; }
+/* position: relative; width: 90vw; min-height: 200px; _left: calc(-50vw + 50%); max-width: 700px; */
 </style>
-<div class='jsign-wrapper'>
+
+<div class='jsign-wrapper{% if readonly %} ro{%endif%}' data-signatory-field='{{ signature.signatory_field }}'>
     <div id='{{ jsign_id }}'
         data-config='{{ js_config }}'
         {% if signature.native %}
@@ -38,6 +39,4 @@ position: relative;
     </div>
 </div>
 <div id='preview-{{ jsign_id }}' class="jsign-preview{% if readonly %} ro{% endif %}" ></div>
-{{ hidden }}
-{{ native }}
 {% endif %}
