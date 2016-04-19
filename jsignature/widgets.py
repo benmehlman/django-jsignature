@@ -70,8 +70,8 @@ class JSignatureWidget(HiddenInput):
             'signature': value,
             'readonly': self.is_readonly,
             'hidden': super(JSignatureWidget, self).render(name, value, attrs),
-            'native': super(JSignatureWidget, self).render('native_' + name, value.native or '', { 'id': attrs['id'].replace(
-                'id_', 'id_native_')}),
+            'native': super(JSignatureWidget, self).render(
+                'native_' + name, value.native or '' if value else '', { 'id': attrs['id'].replace('id_', 'id_native_')}),
             'jsign_id': jsign_id,
             'reset_btn_text': _('Reset'),
             'ok_btn_text': _('Ok'),
