@@ -1,5 +1,6 @@
 
 {% if signature.is_signed %}
+{{ hidden }}
 <div style="display: inline-block; margin-right: 4px; margin-top: 3px; width: 200px;">
 {{signature.signatory_name}}<br>
 {{signature.signed_on}}
@@ -26,9 +27,6 @@
 <div class='jsign-wrapper{% if readonly %} ro{%endif%}' data-signatory-field='{{ signature.signatory_field }}'>
     <div id='{{ jsign_id }}'
         data-config='{{ js_config }}'
-        {% if signature.native %}
-        data-initial-value='{{ signature.native }}'
-        {% endif %}
         class='jsign-container'>
     </div>
     <div style="text-align: center;">

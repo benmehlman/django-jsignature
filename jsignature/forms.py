@@ -5,6 +5,7 @@
 import json, base64
 from datetime import datetime
 from pytz import utc
+import xml.etree.ElementTree as et
 
 from django.forms.fields import Field
 from django.core import validators
@@ -45,6 +46,25 @@ class JSignature(object):
                 self.data['signatory-pk'] = getattr(signatory, 'pk')
                 self.data['signatory-model'] = type(signatory).__name__
 
+    def validate(self, content = None):
+        content = content or self.content
+        if content:
+            try:
+                svg = et.fromstring(content)
+            except Exception, e:
+                return 'Got Invalid Signature Data.  Error was: %s' % e
+            if not svg:
+                return 'No signature image found.'
+            #print svg.attrib
+            width, height = svg.get('width', '-1'), svg.get('height', '-1')
+            width = -1 if width.lower() in ('nan', 'infinity',) else int(width)
+            height = -1 if height.lower() in ('nan', 'infinity',) else int(height)
+
+            #print 'width: %s (%s), height: %s' % (width, type(width), height)
+            if width < 90 or height < 30:
+                return 'Signature is too small.'
+        return None
+
     def as_db_json(self):
         data = dict(self.data)
         data.pop('native', None)
@@ -54,6 +74,8 @@ class JSignature(object):
 
     def is_signed(self):
         # for now -BEN
+        #if self.validate():
+        #    return False
         return bool(self.data.get('signed-dt', None))
 
     @property
@@ -91,7 +113,7 @@ class JSignature(object):
 
     @property
     def native(self):
-        return self.data.get('native', None)
+        return self.data.get('native', '')
 
     def __str__(self):
        return json.dumps(self.data)
@@ -103,3 +125,12 @@ class JSignatureField(Field):
     def to_python(self, value):
         #print "forms.JSignatureField.to_python(value=%s)" % value
         return JSignature(value)
+
+    def validate(self, value):
+        if not value:
+            return
+        if not hasattr(value, 'validate'):
+            raise ValidationError('Signature object should have a "validate" method but does not.  Something is wrong.')
+        error = value.validate()
+        if error:
+            raise ValidationError(error)
