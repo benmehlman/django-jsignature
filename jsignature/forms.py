@@ -48,21 +48,24 @@ class JSignature(object):
 
     def validate(self, content = None):
         content = content or self.content
-        if content:
-            try:
-                svg = et.fromstring(content)
-            except Exception, e:
-                return 'Got Invalid Signature Data.  Error was: %s' % e
-            if not svg:
-                return 'No signature image found.'
-            #print svg.attrib
-            width, height = svg.get('width', '-1'), svg.get('height', '-1')
-            width = -1 if width.lower() in ('nan', 'infinity',) else int(width)
-            height = -1 if height.lower() in ('nan', 'infinity',) else int(height)
+        if not content:
+            return False
 
-            #print 'width: %s (%s), height: %s' % (width, type(width), height)
-            if width < 90 or height < 30:
-                return 'Signature is too small.'
+        try:
+            svg = et.fromstring(content)
+        except Exception, e:
+            return 'Got Invalid Signature Data.  Error was: %s' % e
+        if not svg:
+            return 'No signature image found.'
+        #print svg.attrib
+        width, height = svg.get('width', '-1'), svg.get('height', '-1')
+        width = -1 if width.lower() in ('nan', 'infinity',) else int(width)
+        height = -1 if height.lower() in ('nan', 'infinity',) else int(height)
+
+        #print 'width: %s (%s), height: %s' % (width, type(width), height)
+        if width < 90 or height < 30:
+            return 'Signature is too small.'
+
         return None
 
     def as_db_json(self):
