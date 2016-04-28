@@ -4,7 +4,6 @@ $(document).ready(function() {
 
   function dopreview() {
       var sigdiv = $(this).find('.jsign-container');
-      console.log('dopreview', sigdiv.attr('id'));
       var datapair = sigdiv.jSignature("getData", "image"); 
       var i = new Image();
       i.src = "data:" + datapair[0] + "," + datapair[1];
@@ -13,6 +12,13 @@ $(document).ready(function() {
   function native_input(jsign) {
       return $('#id_native_' + jsign.attr('id').split(/_(.+)/)[1]);
   }
+  function svg_input(jsign) {
+      return $('#id_' + jsign.attr('id').split(/_(.+)/)[1]);
+  }
+
+  function endswith(s, suffix) {
+      return s.indexOf(suffix, s.length - suffix.length) !== -1;
+  }
 
   $(".jsign-wrapper").not('.ro').each(function(){
 
@@ -20,12 +26,13 @@ $(document).ready(function() {
       var jsign = c.find('.jsign-container');
       jsign.jSignature(jsign.data('config'));
       var initial = native_input(jsign).val();
-      if(initial) jsign.jSignature("setData", initial, 'base30');
+      if(initial && !endswith(initial, ',')) 
+          jsign.jSignature("setData", initial, 'base30');
       dopreview.call(c[0]);
       c.hide().remove();
 
       var name = $('#id_' + $(this).data('signatory-field') + '_text').val();
-      var dlg = $(this).dialog({
+      $(this).dialog({
           title: name || 'Signature',
           resizeable: false,
           width: '800px',
@@ -34,10 +41,14 @@ $(document).ready(function() {
           autoOpen: false,
           close: function () {
               var jsign = $(this).find('.jsign-container');
-              var jSignature_data = jsign.jSignature('getData', 'svg');
-              var django_field_name = jsign.attr('id').split(/_(.+)/)[1];
-              $('#id_' + django_field_name).val(JSON.stringify(jSignature_data));
-              native_input(jsign).val(jsign.jSignature('getData', 'base30'));
+              var native_data = String(jsign.jSignature('getData', 'base30'));
+              var svg_data = JSON.stringify(jsign.jSignature('getData', 'svg'));
+
+              if(native_data.length == 0 || endswith(native_data, ',')) {
+                  svg_data = native_data = '';
+              }
+              native_input(jsign).val(native_data);
+              svg_input(jsign).val(svg_data);              
               dopreview.call(this);
           },
           open: function() {
@@ -48,11 +59,9 @@ $(document).ready(function() {
 
               jsign.jSignature(jsign.data('config'));                            
               var initial = native_input(jsign).val();
-              console.log('2nitial', initial);
               if(initial) jsign.jSignature("setData", 'data:' + initial);
           }
       });
-
   });
 
   /* Bind clear button */
