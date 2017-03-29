@@ -19,8 +19,21 @@ $(document).ready(function() {
   function endswith(s, suffix) {
       return s.indexOf(suffix, s.length - suffix.length) !== -1;
   }
+  
+  function jsign_submit_prep(container) {
+      var native_data = String(container.jSignature('getData', 'base30'));
+      var svg_data = JSON.stringify(container.jSignature('getData', 'svg'));
 
-  $(".jsign-wrapper").not('.ro').each(function(){
+      if(native_data.length == 0 || endswith(native_data, ',')) {
+          svg_data = native_data = '';
+      }
+      //alert(svg_data);
+      native_input(container).val(native_data);
+      svg_input(container).val(svg_data);               
+  }
+
+  /* this sets up the handler for the dialog popup mode, where you click on the preview and it opens a dialog for signing */
+  $(".jsign-wrapper").not('.ro,.inline').each(function(){
 
       c = $(this).clone().css('width', '800px').appendTo(document.body).show();
       var jsign = c.find('.jsign-container');
@@ -40,15 +53,7 @@ $(document).ready(function() {
           modal: true,
           autoOpen: false,
           close: function () {
-              var jsign = $(this).find('.jsign-container');
-              var native_data = String(jsign.jSignature('getData', 'base30'));
-              var svg_data = JSON.stringify(jsign.jSignature('getData', 'svg'));
-
-              if(native_data.length == 0 || endswith(native_data, ',')) {
-                  svg_data = native_data = '';
-              }
-              native_input(jsign).val(native_data);
-              svg_input(jsign).val(svg_data);              
+              jsign_submit_prep($(this).find('.jsign-container'));
               dopreview.call(this);
           },
           open: function() {
@@ -62,16 +67,32 @@ $(document).ready(function() {
               if(initial) jsign.jSignature("setData", 'data:' + initial);
           }
       });
+      /* Bind ok button */
+      $(".jsign_ok_btn", $(this)).on("click", function(e) {
+          $(this).closest('.jsign-wrapper').dialog('close');
+      });
+      
+  });
+
+  /* this sets up the handler for the inline mode, where you sign right in place, no preview/dialog */
+  $(".jsign-wrapper.inline").not('.ro').each(function(){
+
+      var name = $('#id_' + $(this).data('signatory-field') + '_text').val();
+      var jsign = $(this).find('.jsign-container');
+      jsign.empty();
+
+      jsign.jSignature(jsign.data('config'));                            
+      var initial = native_input(jsign).val();
+      if(initial) jsign.jSignature("setData", 'data:' + initial);
+
+      $(this).closest('form').submit(function () {
+          jsign_submit_prep(jsign);
+      });
   });
 
   /* Bind clear button */
   $(".jsign-wrapper .jsign_reset_btn").on("click", function(e) {
       $(this).closest('.jsign-wrapper').find('.jsign-container').jSignature('reset');
-  });
-
-  /* Bind ok button */
-  $(".jsign-wrapper .jsign_ok_btn").on("click", function(e) {
-      $(this).closest('.jsign-wrapper').dialog('close');
   });
 
   /* Bind sign button */

@@ -16,7 +16,7 @@
 <style>
 .jsign-preview { display: inline-block; border: 1px dotted; width: 100px; height: 27px; }
 .jsign-preview.ro { background-color: #dde !important; }
-.jsign-wrapper { display: none; }
+.jsign-wrapper { display: {% if inline %}inline-block{% else %}none{% endif %}; }
 .jsign-wrapper .btn { width: 100px; height: 20px; }
 .jsign-container  { min-height: 200px; min-width: 400px; }
 
@@ -24,17 +24,23 @@
 /* position: relative; width: 90vw; min-height: 200px; _left: calc(-50vw + 50%); max-width: 700px; */
 </style>
 
-<div class='jsign-wrapper{% if readonly %} ro{%endif%}' data-signatory-field='{{ signature.signatory_field }}'>
+<div class='jsign-wrapper{% if readonly %} ro{%endif%} {{inline}}' data-signatory-field='{{ signature.signatory_field }}'>
     <div id='{{ jsign_id }}'
         data-config='{{ js_config }}'
         class='jsign-container'>
     </div>
     <div style="text-align: center;">
+    {% if not readonly %}
         {% if config.ResetButton %}
         <input type='button' value='{{ reset_btn_text }}' class="btn jsign_reset_btn">
         {% endif %}
+        {% if not inline %}
         <input type='button' value='Ok' class="btn jsign_ok_btn">
+        {% endif %}
+    {% endif %}
     </div>
 </div>
+{% if not inline %}
 <div id='preview-{{ jsign_id }}' class="jsign-preview{% if readonly %} ro{% endif %}" ></div>
+{% endif %}
 {% endif %}

@@ -26,6 +26,7 @@ class JSignatureWidget(HiddenInput):
     # normal field, not a hidden one
     is_hidden = False
     is_readonly = None
+    is_inline = None
 
     class Media:
         js = ('js/jSignature.min.js',
@@ -65,6 +66,8 @@ class JSignatureWidget(HiddenInput):
         #print "self.attrs: %s, attrs: %s" % (self.attrs, attrs)
         if self.is_readonly is None:
             self.is_readonly = self.attrs.pop('readonly', False) or self.attrs.pop('disabled', False) 
+        if self.is_inline is None:
+            self.is_inline = self.attrs.pop('inline', False)
 
         context = {
             'signature': value,
@@ -77,6 +80,7 @@ class JSignatureWidget(HiddenInput):
             'ok_btn_text': _('Ok'),
             'config': jsignature_config,
             'js_config': mark_safe(json.dumps(jsignature_config)),
+            'inline': 'inline' if self.is_inline else ''
         }
         
         return mark_safe(render_to_string('jsignature/widget.html', context))
