@@ -26,4 +26,5 @@ JSIGNATURE_DEFAULT_CONFIG = {
     'lineWidth': JSIGNATURE_LINE_WIDTH,
     'UndoButton': JSIGNATURE_UNDO_BUTTON,
     'ResetButton': JSIGNATURE_RESET_BUTTON,
+    'signatureLine': True,
 }

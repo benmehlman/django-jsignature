@@ -17,7 +17,7 @@
 .jsign-preview { display: inline-block; border: 1px dotted; width: 100px; height: 27px; }
 .jsign-preview.ro { background-color: #dde !important; }
 .jsign-wrapper { display: {% if inline %}inline-block{% else %}none{% endif %}; }
-.jsign-wrapper .btn { width: 100px; height: 20px; }
+.jsign-wrapper .btn { width: 100px; height: 20px; margin: 5px;}
 .jsign-container  { min-height: 200px; min-width: 400px; }
 
 /* http://stackoverflow.com/questions/5581034/is-there-are-way-to-make-a-child-divs-width-wider-than-the-parent-div-using-css */
@@ -25,11 +25,8 @@
 </style>
 
 <div class='jsign-wrapper{% if readonly %} ro{%endif%} {{inline}}' data-signatory-field='{{ signature.signatory_field }}'>
-    <div id='{{ jsign_id }}'
-        data-config='{{ js_config }}'
-        class='jsign-container'>
-    </div>
-    <div style="text-align: center;">
+    <div id='{{ jsign_id }}' data-config='{{ js_config }}' class='jsign-container'></div>
+    <div style="text-align: center; padding: 3px;">
     {% if not readonly %}
         {% if config.ResetButton %}
         <input type='button' value='{{ reset_btn_text }}' class="btn jsign_reset_btn">
