@@ -13,7 +13,7 @@ from .forms import (
     JSignature,
     JSIGNATURE_EMPTY_VALUES)
 
-class JSignatureField(six.with_metaclass(models.SubfieldBase, models.Field)):
+class JSignatureField(models.Field):
     """
     A model field handling a signature captured with jSignature
     """
@@ -52,6 +52,9 @@ class JSignatureField(six.with_metaclass(models.SubfieldBase, models.Field)):
 
         return super(JSignatureField, self).clean(value, model_instance)
 
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
+        
     def get_prep_value(self, value):
         #print "JSignatureField.get_prep_value(name=%s value=%s)" % (self.name, value)
         if not isinstance(value, JSignature):
