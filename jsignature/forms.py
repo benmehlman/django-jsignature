@@ -4,6 +4,7 @@
 """
 import json, base64
 from datetime import datetime
+from decimal import Decimal
 from pytz import utc
 import xml.etree.ElementTree as et
 
@@ -59,8 +60,8 @@ class JSignature(object):
             return 'No signature image found.'
         #print svg.attrib
         width, height = svg.get('width', '-1'), svg.get('height', '-1')
-        width = -1 if width.lower() in ('nan', 'infinity',) else int(width)
-        height = -1 if height.lower() in ('nan', 'infinity',) else int(height)
+        width = -1 if width.lower() in ('nan', 'infinity',) else int(Decimal(width))
+        height = -1 if height.lower() in ('nan', 'infinity',) else int(Decimal(height))
 
         #print 'width: %s (%s), height: %s' % (width, type(width), height)
         if width < 90 or height < 30:
