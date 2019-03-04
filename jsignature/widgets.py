@@ -80,7 +80,8 @@ class JSignatureWidget(HiddenInput):
             'ok_btn_text': _('Ok'),
             'config': jsignature_config,
             'js_config': mark_safe(json.dumps(jsignature_config)),
-            'inline': 'inline' if self.is_inline else ''
+            'inline': 'inline' if self.is_inline else '',
+            'editable': 'editable' if 'editable' in self.attrs.get('class', '') else '',
         }
         
         return mark_safe(render_to_string('jsignature/widget.html', context))

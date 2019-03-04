@@ -34,7 +34,7 @@ $(document).ready(function() {
 
   window.jsign_init = function jsign_init() {
       /* this sets up the handler for the dialog popup mode, where you click on the preview and it opens a dialog for signing */
-      $(".jsign-wrapper").not('.ro,.inline').each(function(){
+      $(".jsign-wrapper").not('.inline').each(function(){
 
           c = $(this).clone().css('width', '800px').appendTo(document.body).show();
           var jsign = c.find('.jsign-container');
@@ -76,7 +76,7 @@ $(document).ready(function() {
       });
 
       /* this sets up the handler for the inline mode, where you sign right in place, no preview/dialog */
-      $(".jsign-wrapper.inline").not('.ro').each(function(){
+      $(".jsign-wrapper.inline").each(function(){
 
           var name = $('#id_' + $(this).data('signatory-field') + '_text').val();
           var jsign = $(this).find('.jsign-container');
@@ -101,8 +101,10 @@ $(document).ready(function() {
           $('#'+$(this).data('jsign-id')).closest('.jsign-wrapper').dialog("option", "position", "center").dialog('open');
       });
 
-      $(".jsign-preview").not('.ro').on("click", function(e) {
-          $('#' + $(this).attr('id').replace('preview-', '')).closest('.jsign-wrapper').dialog('open');
+      $(".jsign-preview").on("click", function(e) {
+          if(!$(this).hasClass('ro')) {
+              $('#' + $(this).attr('id').replace('preview-', '')).closest('.jsign-wrapper').dialog('open');
+          }
       });
   }
   jsign_init();

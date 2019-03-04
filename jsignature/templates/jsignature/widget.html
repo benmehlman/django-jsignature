@@ -38,6 +38,6 @@
     </div>
 </div>
 {% if not inline %}
-<div id='preview-{{ jsign_id }}' class="jsign-preview{% if readonly %} ro{% endif %}" ></div>
+<div id='preview-{{ jsign_id }}' class="jsign-preview{% if readonly %} ro{% endif %}{% if editable %} editable{% endif %}"></div>
 {% endif %}
 {% endif %}
