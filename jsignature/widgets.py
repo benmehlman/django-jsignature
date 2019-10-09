@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 from jsignature.settings import JSIGNATURE_DEFAULT_CONFIG
 
 JSIGNATURE_EMPTY_VALUES = validators.EMPTY_VALUES + ('[]', )
-import forms
+
 
 class JSignatureWidget(HiddenInput):
     """
@@ -39,7 +39,8 @@ class JSignatureWidget(HiddenInput):
 
     def value_from_datadict(self, data, files, name):
         #print "value_from_datadict(name=%s, value=%s)" % (name, data.get(name))
-        return forms.JSignature(data.get(name), data.get('native_' + name, None))
+        from .forms import JSignature
+        return JSignature(data.get(name), data.get('native_' + name, None))
 
     def build_jsignature_config(self):
         """ Build javascript config for jSignature initialization.
@@ -58,7 +59,7 @@ class JSignatureWidget(HiddenInput):
     def render(self, name, value, attrs=None):
         """ Render widget """
         
-        #print "JSignatureWidget.render(value=%s, type=%s)" % (value, type(value))
+        #print "JSignature"
 
         jsign_id = self.build_jsignature_id(name)
         jsignature_config = self.build_jsignature_config()

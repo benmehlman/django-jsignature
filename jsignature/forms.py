@@ -2,7 +2,7 @@
     Provides a django form field to handle a signature capture field with
     with jSignature jQuery plugin
 """
-import json, base64
+import json, base64, six
 from datetime import datetime
 from decimal import Decimal
 from pytz import utc
@@ -40,7 +40,7 @@ class JSignature(object):
         if field_name:
             self.data['signatory-field'] = field_name
         if signatory:
-            name = unicode(signatory or '')
+            name = six.text_type(signatory or '')
             if name:
                 self.data['signatory-name'] = name
             if hasattr(signatory, 'pk'):
@@ -54,7 +54,7 @@ class JSignature(object):
 
         try:
             svg = et.fromstring(content)
-        except Exception, e:
+        except Exception as e:
             return 'Got Invalid Signature Data.  Error was: %s' % e
         if not svg:
             return 'No signature image found.'
