@@ -92,7 +92,7 @@ class JSignature(object):
 
     @property
     def content_base64(self):
-        return base64.b64encode(self.content)
+        return base64.b64encode(self.content.encode('utf-8'))
 
     @property
     def signed_dt(self):
